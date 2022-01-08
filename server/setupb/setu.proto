@@ -1,0 +1,48 @@
+syntax = "proto3";
+package setu;
+option go_package = "github.com/0w0mewo/budong/pkg/setupb";
+
+service SetuService {
+    rpc GetInventory (InventoryReq) returns (InventoryResp) {};
+    rpc Fetch(FetchReq) returns (FetchResp) {}; 
+    rpc GetSetuById(SetuReq) returns (stream SetuResp) {};
+    rpc Random(RandomReq) returns (stream SetuResp) {}
+}
+
+message SetuReq {
+    int64 id = 1;
+}
+
+message RandomReq {
+    bool R18 = 1;
+}
+
+message SetuResp {
+    bytes chunk = 2;
+}
+
+message FetchReq {
+    uint64 amount = 1;
+    bool r18 = 2;
+}
+
+message InventoryReq {
+    uint64 page = 1;
+    uint64 pageLimit = 2; 
+}
+
+message FetchResp {
+    string errMsg = 1;
+}
+
+message InventoryResp {
+    FetchResp err = 1;
+    message SetuInfo {
+        int64 id = 1;
+        string title = 2;
+        int64 uid = 3;
+        string url = 4;
+        bool is_r18 = 5;
+    }
+    repeated SetuInfo info = 2;
+}
