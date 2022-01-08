@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -21,6 +22,7 @@ type ApiServer struct {
 	httpServer *http.Server
 	service    server.Service
 	logger     *logrus.Entry
+	routemap   map[string]gin.HandlerFunc
 }
 
 func NewRestfulServer(addr string) *ApiServer {
@@ -40,14 +42,22 @@ func NewRestfulServer(addr string) *ApiServer {
 }
 
 func (r *ApiServer) Init() {
-	r.routes.GET("/", r.hello)
-	r.routes.GET("dofetch/:num", r.fetchsetu)
-	r.routes.GET("inventory/:page/:page_size", r.inventory)
-	r.routes.GET("/:id", r.givemesetu)
-
+	r.routemap = map[string]gin.HandlerFunc{
+		"random":                     r.hello,
+		"dofetch/:num":               r.fetchsetu,
+		"inventory/:page/:page_size": r.inventory,
+		"get/:id":                    r.givemesetu,
+		"/":                          r.help,
+		"/help":                      r.help,
+		"count":                      r.count,
+	}
 }
 
 func (r *ApiServer) Run() {
+	for path, handler := range r.routemap {
+		r.routes.GET(path, handler)
+	}
+
 	r.httpServer.ListenAndServe()
 }
 
@@ -81,6 +91,28 @@ func (r *ApiServer) givemesetu(c *gin.Context) {
 		return nil
 	})
 
+}
+
+func (r *ApiServer) help(c *gin.Context) {
+	fmt.Fprintf(c.Writer, `
+		GET /get/<id> : get a setu from DB by id, id is int
+		GET /dofetch/<amount> : fetch amount of setu and store them to DB, amount is int
+		GET /random : return a random setu from DB
+		GET /inventory/<page>/<page_size>
+		GET /count
+	
+	
+	`)
+}
+
+func (r *ApiServer) count(c *gin.Context) {
+	tryOrSendErr(c, func() error {
+		cnt := r.service.Count()
+		c.JSON(http.StatusOK, &CountResp{Count: cnt})
+
+		return nil
+
+	})
 }
 
 func (r *ApiServer) inventory(c *gin.Context) {

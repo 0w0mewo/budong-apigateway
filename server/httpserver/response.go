@@ -11,6 +11,10 @@ type ErrResp struct {
 	ErrMsg string `json:"error"`
 }
 
+type CountResp struct {
+	Count uint64 `json:"amount"`
+}
+
 type InventoryResp struct {
 	ErrResp
 	Infos []*server.SetuInfo `json:"inventory"`
