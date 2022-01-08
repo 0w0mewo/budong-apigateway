@@ -80,17 +80,46 @@ func (sgc *SetuGrpcClient) GetInventory(page, pageLimit uint64) ([]*server.SetuI
 	return inventoryToSetuInfos(resp), nil
 }
 
-// TODO
 func (sgc *SetuGrpcClient) RandomSetu() ([]byte, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stream, err := sgc.client.Random(ctx, &setupb.RandomReq{R18: false})
+	if err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+	for {
+		chunk, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		buf.Write(chunk.Chunk)
+	}
+
+	return buf.Bytes(), err
+
 }
 
 func (sgc *SetuGrpcClient) Count() uint64 {
-	return 0
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	cnt, err := sgc.client.Count(ctx, &setupb.CountReq{})
+	if err != nil {
+		return 0
+	}
+
+	return cnt.Cnt
 }
 
 func (sgc *SetuGrpcClient) Shutdown() {
-
+	sgc.conn.Close()
 }
 
 func inventoryToSetuInfos(setus *setupb.InventoryResp) []*server.SetuInfo {

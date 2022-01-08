@@ -1,4 +1,4 @@
-[submodule "setupb"]
+[submodule "server/setupb"]
 	path = server/setupb
 	url = https://github.com/0w0mewo/budong.git
 	branch = protobuf
