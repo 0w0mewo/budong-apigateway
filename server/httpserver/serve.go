@@ -25,10 +25,10 @@ type ApiServer struct {
 	routemap   map[string]gin.HandlerFunc
 }
 
-func NewRestfulServer(addr string) *ApiServer {
+func NewRestfulServer(addr, c string) *ApiServer {
 	routes := gin.New()
 	logger := logrus.StandardLogger().WithField("server", "rest")
-	serve := grpcclient.NewSetuGrpcClient("127.0.0.1:9999")
+	serve := grpcclient.NewSetuGrpcClient(c)
 
 	return &ApiServer{
 		routes: routes,
